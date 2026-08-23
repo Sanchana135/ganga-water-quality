@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Ganga River Water Quality Forecasting System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { background: #0B132B; color: #F8FAFC; font-family: 'Inter', sans-serif; }
+        .hero-section {
+            background: radial-gradient(circle at 50% 20%, #1C2541 0%, #0B132B 80%);
+            padding: 5rem 2rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #64DFDF, #48CAE4, #0077B6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.25rem;
+            line-height: 1.2;
+        }
+        .hero-sub {
+            font-size: 1.2rem;
+            color: #94A3B8;
+            max-width: 850px;
+            margin: 0 auto 2.5rem;
+            line-height: 1.6;
+        }
+        .cta-btn-group { display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem; }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.06); border-color: #00A896; }
+        .feature-icon {
+            width: 56px; height: 56px; background: linear-gradient(135deg, #00A896, #0284C7);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; color: white; margin-bottom: 1.25rem;
+        }
+        .demo-box {
+            background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 1.25rem 2rem; border-radius: 12px; max-width: 700px; margin: 0 auto; text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Landing Navigation -->
+    <nav style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 4rem; border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 40px; height: 40px; background: #00A896; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                <i class="fa-solid fa-water"></i>
+            </div>
+            <span style="font-family: 'Outfit'; font-size: 1.3rem; font-weight: 700; color: white;">Ganga River DSS</span>
+        </div>
+        <div>
+            {% if is_logged_in %}
+                <a href="{{ url_for('dashboard.view_dashboard') }}" class="btn btn-teal">
+                    <i class="fa-solid fa-gauge"></i> Open Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.2); margin-right: 0.5rem;">Log In</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-teal">Register Account</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1 class="hero-title">Real-Time Ganga River Water Quality Forecasting<br>Using AI-Enabled DSS & Satellite IoT Data</h1>
+        <p class="hero-sub">
+            An intelligent environmental Decision Support System integrating multi-station IoT sensor telemetry, 
+            Sentinel-2 remote sensing proxies, dynamic hydrologic models, and Scikit-Learn AI ensemble forecasting.
+        </p>
+
+        <div class="cta-btn-group">
+            {% if is_logged_in %}
+                <a href="{{ url_for('dashboard.view_dashboard') }}" class="btn btn-teal" style="padding: 0.85rem 2rem; font-size: 1rem;">
+                    <i class="fa-solid fa-chart-line"></i> Launch Dashboard
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-teal" style="padding: 0.85rem 2rem; font-size: 1rem;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login to System
+                </a>
+            {% endif %}
+            <a href="#how-it-works" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.2); padding: 0.85rem 2rem; font-size: 1rem;">
+                <i class="fa-solid fa-circle-info"></i> How It Works
+            </a>
+        </div>
+
+        <div class="demo-box">
+            <div style="font-weight: 700; color: #10B981; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-key"></i> Academic Demo Administrator Credentials:
+            </div>
+            <div style="font-size: 0.9rem; color: #E2E8F0;">
+                Email: <strong>admin@ganga.gov.in</strong> &nbsp;|&nbsp; Password: <strong>Admin@123</strong> &nbsp;|&nbsp; Role: <strong>Administrator</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture & Features Section -->
+    <section id="how-it-works" style="padding: 5rem 4rem; max-width: 1300px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 4rem;">
+            <h2 style="font-size: 2.2rem; font-weight: 700; color: white; margin-bottom: 0.75rem;">Integrated System Architecture</h2>
+            <p style="color: #94A3B8; font-size: 1.05rem;">From telemetry collection to AI advisory recommendations</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem;">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-microchip"></i></div>
+                <h3 style="color: white; margin-bottom: 0.6rem; font-size: 1.2rem;">1. IoT Monitoring</h3>
+                <p style="color: #94A3B8; font-size: 0.9rem;">
+                    Continuous multi-parameter telemetry recording pH, Dissolved Oxygen (DO), Turbidity, TDS, Conductivity, BOD, and COD across major Ganga river basins.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-satellite"></i></div>
+                <h3 style="color: white; margin-bottom: 0.6rem; font-size: 1.2rem;">2. Satellite Earth Observation</h3>
+                <p style="color: #94A3B8; font-size: 0.9rem;">
+                    Incorporates remote sensing proxies (NDTI Normalized Difference Turbidity Index & river surface extent) for large-scale basin observation.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-brain"></i></div>
+                <h3 style="color: white; margin-bottom: 0.6rem; font-size: 1.2rem;">3. Machine Learning Pipeline</h3>
+                <p style="color: #94A3B8; font-size: 0.9rem;">
+                    Scikit-Learn Random Forest regressor and classifier ensemble trained on historical basin data to forecast WQI 6h, 12h, 24h, and 72h ahead.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                <h3 style="color: white; margin-bottom: 0.6rem; font-size: 1.2rem;">4. AI Decision Support System</h3>
+                <p style="color: #94A3B8; font-size: 0.9rem;">
+                    Synthesizes predicted trends into actionable environmental management advisories, immediate field responses, and early warning alerts.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="padding: 2.5rem 4rem; border-top: 1px solid rgba(255,255,255,0.08); text-align: center; color: #64748B; font-size: 0.85rem;">
+        <p>Ganga River Water Quality Forecasting & Decision Support System &copy; 2026. Final Year Academic Software System Project.</p>
+        <p style="margin-top: 0.4rem; font-size: 0.78rem;">Disclaimer: IoT sensor data and satellite proxies operate in local demonstration dataset mode for academic evaluation.</p>
+    </footer>
+
+</body>
+</html>

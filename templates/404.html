@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found - Ganga DSS{% endblock %}
+{% block content %}
+<div style="text-align: center; padding: 4rem 1rem;">
+    <h1 style="font-size: 4rem; color: var(--ocean-cyan);">404</h1>
+    <h2 style="margin-bottom: 1rem;">Page Not Found</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">The requested river monitoring route does not exist.</p>
+    <a href="{{ url_for('dashboard.view_dashboard') }}" class="btn btn-teal">Back to Dashboard</a>
+</div>
+{% endblock %}

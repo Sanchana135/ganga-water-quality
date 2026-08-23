@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Overview - Ganga Water Quality DSS{% endblock %}
+{% block header_title %}Ganga River Water Quality Overview{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Cards -->
+<div class="grid-4">
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Basin Average WQI</div>
+            <div class="stat-value" id="stat-wqi">--</div>
+            <div id="stat-status-badge" style="margin-top: 0.3rem;"></div>
+        </div>
+        <div class="stat-icon cyan"><i class="fa-solid fa-water"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Dissolved Oxygen (DO)</div>
+            <div class="stat-value" id="stat-do">-- <span style="font-size: 0.9rem;">mg/L</span></div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Target: > 5.0 mg/L</div>
+        </div>
+        <div class="stat-icon green"><i class="fa-solid fa-wind"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Turbidity Average</div>
+            <div class="stat-value" id="stat-turb">-- <span style="font-size: 0.9rem;">NTU</span></div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Standard: < 10 NTU</div>
+        </div>
+        <div class="stat-icon amber"><i class="fa-solid fa-smog"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Active Warning Alerts</div>
+            <div class="stat-value" id="stat-alerts-count">--</div>
+            <div style="font-size: 0.75rem; color: var(--critical-red);">Requires Attention</div>
+        </div>
+        <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    </div>
+</div>
+
+<!-- Main Row: WQI Trend Chart + Station Status Grid -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-chart-line text-primary"></i> 30-Day Basin WQI Trend Analysis</h3>
+            <span class="badge-mode">Live Sync</span>
+        </div>
+        <div class="card-body">
+            <canvas id="dashboardTrendChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-map-location-dot text-primary"></i> Station GIS Distribution</h3>
+            <a href="{{ url_for('dashboard.view_map') }}" class="btn btn-outline btn-sm">Full Map View</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div id="dashboard-mini-map" style="height: 280px; width: 100%; border-radius: 0 0 12px 12px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row: Station Status Cards & Recent Alerts -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Monitoring Station Telemetry</h3>
+            <a href="{{ url_for('dashboard.view_monitoring') }}" class="btn btn-teal btn-sm">IoT Studio</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Station</th>
+                            <th>pH</th>
+                            <th>DO (mg/L)</th>
+                            <th>Turbidity</th>
+                            <th>WQI</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboard-stations-tbody">
+                        <tr><td colspan="6" style="text-align: center;">Loading stations telemetry...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-bell text-warning"></i> Recent System Alerts</h3>
+            <a href="{{ url_for('dashboard.view_alerts') }}" class="btn btn-outline btn-sm">Alert Center</a>
+        </div>
+        <div class="card-body" id="dashboard-alerts-container" style="max-height: 320px; overflow-y: auto;">
+            <div style="text-align: center; color: var(--text-muted); padding: 1rem;">Loading active alerts...</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

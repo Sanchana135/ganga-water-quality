@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Water Quality Reports - Ganga DSS{% endblock %}
+{% block header_title %}Ganga River Water Quality Report Generator{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-file-contract text-teal"></i> Compile Assessment Report</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1.25rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Ganga Station</label>
+                <select id="report-station-select" class="form-select">
+                    {% for st in stations %}
+                        <option value="{{ st.id }}">{{ st.name }} ({{ st.location }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Assessment Period</label>
+                <select id="report-days-select" class="form-select">
+                    <option value="7">Past 7 Days</option>
+                    <option value="15">Past 15 Days</option>
+                    <option value="30" selected>Past 30 Days</option>
+                </select>
+            </div>
+
+            <button id="btn-generate-report" class="btn btn-teal">
+                <i class="fa-solid fa-file-invoice"></i> Compile Report
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="report-preview-container" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-print"></i> Report Preview Summary</h3>
+            <button id="btn-print-pdf" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-print"></i> Print / Download PDF Report
+            </button>
+        </div>
+        <div class="card-body">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">Station Name</div>
+                    <div style="font-size: 1.2rem; font-weight: 700;" id="rep-st-name">--</div>
+                </div>
+
+                <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">Average WQI Score</div>
+                    <div style="font-size: 1.2rem; font-weight: 700;" id="rep-avg-wqi">--</div>
+                </div>
+
+                <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">WQI Range (Min / Max)</div>
+                    <div style="font-size: 1.2rem; font-weight: 700;" id="rep-wqi-range">-- / --</div>
+                </div>
+
+                <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px;">
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">Predicted 24h WQI</div>
+                    <div style="font-size: 1.2rem; font-weight: 700; color: var(--ocean-cyan);" id="rep-pred-wqi">--</div>
+                </div>
+            </div>
+
+            <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 1.25rem;">
+                <h4 style="font-size: 1rem; color: var(--primary-navy); margin-bottom: 0.4rem;">
+                    <i class="fa-solid fa-lightbulb text-warning"></i> Report Executive Advisory
+                </h4>
+                <p id="rep-summary-text" style="font-size: 0.9rem; color: var(--text-primary);"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const stationSelect = document.getElementById('report-station-select');
+    const daysSelect = document.getElementById('report-days-select');
+    const btnGen = document.getElementById('btn-generate-report');
+    const btnPrint = document.getElementById('btn-print-pdf');
+    const previewContainer = document.getElementById('report-preview-container');
+
+    btnGen.addEventListener('click', generateReport);
+
+    btnPrint.addEventListener('click', function () {
+        const st = stationSelect.value;
+        const days = daysSelect.value;
+        window.open(`/reports/print?station_id=${st}&days=${days}`, '_blank');
+    });
+
+    function generateReport() {
+        const payload = {
+            station_id: parseInt(stationSelect.value),
+            days: parseInt(daysSelect.value)
+        };
+
+        fetch('/api/reports/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            previewContainer.style.display = 'block';
+            document.getElementById('rep-st-name').textContent = data.station.name;
+            document.getElementById('rep-avg-wqi').textContent = `${data.summary.avg_wqi} (${data.summary.quality_category})`;
+            document.getElementById('rep-wqi-range').textContent = `${data.summary.min_wqi} / ${data.summary.max_wqi}`;
+            document.getElementById('rep-pred-wqi').textContent = `${data.forecast_24h.predicted_wqi} (${data.forecast_24h.predicted_category})`;
+            document.getElementById('rep-summary-text').textContent = data.dss_recommendations.executive_summary;
+        });
+    }
+});
+</script>
+{% endblock %}

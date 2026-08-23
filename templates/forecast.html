@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}AI Water Quality Forecasting - Ganga DSS{% endblock %}
+{% block header_title %}AI Multi-Horizon Water Quality Forecast Engine{% endblock %}
+
+{% block content %}
+<!-- Control Panel & Input Selectors -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-brain text-teal"></i> Forecast Execution Studio</h3>
+        <span class="badge-mode">Scikit-Learn Random Forest Pipeline</span>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Select Station</label>
+                <select id="forecast-station-select" class="form-select">
+                    {% for st in stations %}
+                        <option value="{{ st.id }}">{{ st.name }} ({{ st.location }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Forecast Horizon</label>
+                <select id="forecast-horizon-select" class="form-select">
+                    <option value="6">Next 6 Hours</option>
+                    <option value="12">Next 12 Hours</option>
+                    <option value="24" selected>Next 24 Hours</option>
+                    <option value="72">Next 3 Days (72 Hours)</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Expected Rainfall (mm)</label>
+                <input type="number" id="forecast-rainfall-input" class="form-control" value="0.0" step="1.0" min="0">
+            </div>
+
+            <div>
+                <button id="btn-run-forecast" class="btn btn-teal" style="width: 100%;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Execute AI Forecast
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Comparison Cards: Current vs Predicted -->
+<div class="grid-2">
+    <div class="card" style="border-left: 4px solid var(--river-blue);">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Current Observed Status</h3>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Current WQI Score</div>
+                    <div style="font-size: 2rem; font-weight: 700;" id="curr-wqi">--</div>
+                </div>
+                <div id="curr-badge"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+                <div><b>Observed DO:</b> <span id="curr-do">--</span> mg/L</div>
+                <div><b>Observed Turbidity:</b> <span id="curr-turb">--</span> NTU</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--ocean-cyan); background: linear-gradient(135deg, #FFFFFF, #F0FDFA);">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-sparkles text-teal"></i> Predicted Forecast Status</h3>
+            <span class="badge-status good" id="pred-confidence">--% Confidence</span>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Predicted WQI Score</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--ocean-cyan);" id="pred-wqi">--</div>
+                </div>
+                <div id="pred-badge"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+                <div><b>Predicted DO:</b> <span id="pred-do">--</span> mg/L</div>
+                <div><b>Predicted Turbidity:</b> <span id="pred-turb">--</span> NTU</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forecast Line Trajectory Chart -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-area text-teal"></i> Forecast Trajectory: Historical Sensor Telemetry &rarr; Current &rarr; Predicted Horizon</h3>
+    </div>
+    <div class="card-body">
+        <canvas id="forecastChart" height="280"></canvas>
+    </div>
+</div>
+
+<!-- Model Performance Evaluation Metrics Panel -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-circle-check text-success"></i> Scikit-Learn Model Evaluation Metrics (Actual Test Set)</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;" id="metrics-container">
+            <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Mean Absolute Error (MAE)</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary-navy);" id="metric-mae">--</div>
+            </div>
+
+            <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Root Mean Squared Error (RMSE)</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--primary-navy);" id="metric-rmse">--</div>
+            </div>
+
+            <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Regression R² Score</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--emerald-green);" id="metric-r2">--</div>
+            </div>
+
+            <div style="background: #F8FAFC; padding: 1rem; border-radius: 8px; text-align: center;">
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Classification Accuracy</div>
+                <div style="font-size: 1.4rem; font-weight: 700; color: var(--ocean-cyan);" id="metric-acc">--</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/forecast.js') }}"></script>
+{% endblock %}

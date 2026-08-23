@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Early Warnings & Alerts - Ganga DSS{% endblock %}
+{% block header_title %}Early Warning & Ecological Threshold Alerts{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation text-warning"></i> Alert Filters</h3>
+        <div style="display: flex; gap: 1rem;">
+            <select id="alert-severity-filter" class="form-select" style="min-width: 160px;">
+                <option value="">All Severities</option>
+                <option value="CRITICAL">Critical</option>
+                <option value="HIGH">High</option>
+                <option value="WARNING">Warning</option>
+                <option value="INFO">Info</option>
+            </select>
+
+            <select id="alert-status-filter" class="form-select" style="min-width: 160px;">
+                <option value="false">Active Alerts Only</option>
+                <option value="true">Resolved Alerts</option>
+            </select>
+        </div>
+    </div>
+    <div class="card-body" id="alerts-list-container">
+        <div style="text-align: center; padding: 2rem;">Loading alerts...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sevFilter = document.getElementById('alert-severity-filter');
+    const statusFilter = document.getElementById('alert-status-filter');
+
+    loadAlerts();
+
+    sevFilter.addEventListener('change', loadAlerts);
+    statusFilter.addEventListener('change', loadAlerts);
+
+    function loadAlerts() {
+        let url = `/api/alerts?resolved=${statusFilter.value}`;
+        if (sevFilter.value) url += `&severity=${sevFilter.value}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(alerts => {
+                const container = document.getElementById('alerts-list-container');
+                if (!alerts || alerts.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 3rem;"><i class="fa-solid fa-circle-check text-success" style="font-size: 2rem;"></i><br><br>No active threshold alerts.</div>';
+                    return;
+                }
+
+                container.innerHTML = alerts.map(a => `
+                    <div class="alert-box ${a.severity}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <div>
+                                <span class="badge-severity ${a.severity}">${a.severity}</span>
+                                <strong style="font-size: 1rem; margin-left: 0.5rem; color: var(--primary-navy);">${a.alert_type}</strong>
+                                <span style="font-size: 0.82rem; color: var(--text-muted);"> &bull; Station: <b>${a.station_name}</b></span>
+                            </div>
+                            <div style="font-size: 0.78rem; color: var(--text-muted);">${a.created_at}</div>
+                        </div>
+
+                        <p style="font-size: 0.9rem; color: var(--text-primary); margin-bottom: 0.6rem;">${a.message}</p>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem;">
+                            <div>
+                                <b>Parameter:</b> ${a.parameter} | <b>Recorded:</b> ${a.current_value} | <b>Threshold:</b> ${a.threshold}
+                            </div>
+                            ${!a.resolved ? `
+                                <button class="btn btn-outline btn-sm" onclick="resolveAlert(${a.id})">
+                                    <i class="fa-solid fa-check text-success"></i> Mark Resolved
+                                </button>
+                            ` : '<span class="badge-status good">Resolved</span>'}
+                        </div>
+                    </div>
+                `).join('');
+            });
+    }
+
+    window.resolveAlert = function (alertId) {
+        fetch(`/api/alerts/${alertId}/resolve`, { method: 'POST' })
+            .then(res => res.json())
+            .then(() => loadAlerts());
+    };
+});
+</script>
+{% endblock %}

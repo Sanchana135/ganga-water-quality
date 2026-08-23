@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Satellite Remote Sensing - Ganga DSS{% endblock %}
+{% block header_title %}Satellite Earth Observation & Remote Sensing Module{% endblock %}
+
+{% block content %}
+<!-- Satellite Configuration Status Banner -->
+<div class="card" style="border-left: 4px solid var(--ocean-cyan);">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-satellite text-teal"></i> Earth Observation Ingestion Status</h3>
+        <span class="badge-mode" id="sat-status-badge">Demonstration / Local Dataset Mode</span>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; font-size: 0.88rem;">
+            <div><b>Active Satellites:</b> Sentinel-2A, Sentinel-2B, Landsat-9</div>
+            <div><b>Spatial Resolution:</b> 10 meters</div>
+            <div><b>Spectral Bands:</b> B4 (Red), B8 (NIR), B11 (SWIR-1)</div>
+            <div><b>Proxy Index:</b> NDTI (Normalized Difference Turbidity)</div>
+        </div>
+        <div style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted); background: #F8FAFC; padding: 0.75rem; border-radius: 6px;">
+            <i class="fa-solid fa-circle-info text-teal"></i> Satellite observations provide basin-wide turbidity proxies and river water surface extent estimates.
+        </div>
+    </div>
+</div>
+
+<!-- Observations Data Table -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-table"></i> Remote Sensed Observations Log</h3>
+        <div class="form-group" style="margin-bottom: 0; min-width: 220px;">
+            <select id="sat-station-filter" class="form-select">
+                <option value="">All Ganga Stations</option>
+                {% for st in stations %}
+                    <option value="{{ st.id }}">{{ st.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Station</th>
+                        <th>Coordinates</th>
+                        <th>NDTI Index</th>
+                        <th>Turbidity Proxy (NTU)</th>
+                        <th>Water Extent (km²)</th>
+                        <th>Satellite Source</th>
+                    </tr>
+                </thead>
+                <tbody id="sat-tbody">
+                    <tr><td colspan="7" style="text-align: center;">Loading satellite observations...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filter = document.getElementById('sat-station-filter');
+    loadSatelliteData(filter.value);
+
+    filter.addEventListener('change', function () {
+        loadSatelliteData(this.value);
+    });
+
+    function loadSatelliteData(stationId) {
+        let url = '/api/satellite';
+        if (stationId) url += `?station_id=${stationId}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('sat-tbody');
+                if (!data.observations || data.observations.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No satellite observations found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.observations.map(s => `
+                    <tr>
+                        <td><strong>${s.observation_date}</strong></td>
+                        <td>${s.station_name}</td>
+                        <td><span style="font-size: 0.8rem; color: var(--text-muted);">${s.latitude.toFixed(4)}, ${s.longitude.toFixed(4)}</span></td>
+                        <td><code>${s.satellite_index.toFixed(4)}</code></td>
+                        <td><strong>${s.turbidity_proxy.toFixed(1)} NTU</strong></td>
+                        <td>${s.water_extent.toFixed(2)} km²</td>
+                        <td><span class="badge-status good">${s.raw_source}</span></td>
+                    </tr>
+                `).join('');
+            });
+    }
+});
+</script>
+{% endblock %}

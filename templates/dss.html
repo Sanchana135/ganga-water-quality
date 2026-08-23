@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}AI Decision Support System - Ganga DSS{% endblock %}
+{% block header_title %}AI-Enabled Environmental Decision Support System (DSS){% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-lightbulb text-warning"></i> Select River Station for Advisory Assessment</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Ganga River Station</label>
+                <select id="dss-station-select" class="form-select">
+                    {% for st in stations %}
+                        <option value="{{ st.id }}">{{ st.name }} ({{ st.location }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button id="btn-eval-dss" class="btn btn-teal">
+                <i class="fa-solid fa-brain"></i> Evaluate DSS Advisory
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="dss-recommendation-card" style="margin-bottom: 1.5rem;" id="dss-summary-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h2 style="font-size: 1.4rem; color: var(--primary-navy); margin-bottom: 0.2rem;" id="dss-station-name">Loading Station...</h2>
+            <div style="font-size: 0.88rem; color: var(--text-muted);" id="dss-exec-summary">Synthesizing telemetry...</div>
+        </div>
+        <div id="dss-risk-badge"></div>
+    </div>
+
+    <div style="background: #FFFFFF; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+        <strong style="font-size: 0.85rem; color: var(--river-blue);"><i class="fa-solid fa-magnifying-glass"></i> Key Ecological Pollution Drivers:</strong>
+        <div id="dss-drivers-list" style="margin-top: 0.4rem; font-size: 0.88rem; color: var(--text-primary);"></div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-bolt text-danger"></i> Immediate Field Responses</h3>
+        </div>
+        <div class="card-body">
+            <ul id="dss-immediate-list" style="padding-left: 1.2rem; font-size: 0.9rem; line-height: 1.7;">
+                <li>Loading immediate actions...</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-clipboard-check text-teal"></i> Monitoring & Governance Strategy</h3>
+        </div>
+        <div class="card-body">
+            <ul id="dss-strategy-list" style="padding-left: 1.2rem; font-size: 0.9rem; line-height: 1.7;">
+                <li>Loading long-term strategy...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const stationSelect = document.getElementById('dss-station-select');
+    const btnEval = document.getElementById('btn-eval-dss');
+
+    loadDSS(stationSelect.value);
+
+    stationSelect.addEventListener('change', () => loadDSS(stationSelect.value));
+    btnEval.addEventListener('click', () => loadDSS(stationSelect.value));
+
+    function loadDSS(stationId) {
+        fetch(`/api/dss?station_id=${stationId}`)
+            .then(res => res.json())
+            .then(dss => {
+                document.getElementById('dss-station-name').textContent = `${dss.station_name} Basin Advisory`;
+                document.getElementById('dss-exec-summary').textContent = dss.executive_summary;
+
+                const riskBadge = document.getElementById('dss-risk-badge');
+                riskBadge.className = `badge-status ${dss.category.toLowerCase()}`;
+                riskBadge.textContent = `${dss.pollution_risk} RISK`;
+
+                document.getElementById('dss-drivers-list').innerHTML = dss.key_drivers.map(d => `
+                    <span style="display: inline-block; background: #E0F2FE; color: #0369A1; font-weight: 600; padding: 0.25rem 0.6rem; border-radius: 6px; font-size: 0.8rem; margin-right: 0.4rem; margin-bottom: 0.4rem;">
+                        <i class="fa-solid fa-circle-exclamation"></i> ${d}
+                    </span>
+                `).join('');
+
+                document.getElementById('dss-immediate-list').innerHTML = dss.immediate_actions.map(a => `
+                    <li style="margin-bottom: 0.5rem;">${a}</li>
+                `).join('');
+
+                document.getElementById('dss-strategy-list').innerHTML = (dss.recommendations.concat(dss.long_term_strategies)).map(s => `
+                    <li style="margin-bottom: 0.5rem;">${s}</li>
+                `).join('');
+            });
+    }
+});
+</script>
+{% endblock %}

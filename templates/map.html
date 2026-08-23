@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Ganga GIS Interactive Map - Ganga DSS{% endblock %}
+{% block header_title %}Ganga River Basin GIS Monitoring Map{% endblock %}
+
+{% block content %}
+<div class="grid-2" style="grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-map-location-dot text-teal"></i> OpenStreetMap Interactive River GIS</h3>
+            <div style="display: flex; gap: 0.5rem;">
+                <span class="badge-status excellent">Good / Excellent</span>
+                <span class="badge-status moderate">Moderate</span>
+                <span class="badge-status poor">Poor</span>
+                <span class="badge-status critical">Critical</span>
+            </div>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div id="full-gis-map" style="height: 560px; width: 100%; border-radius: 0 0 12px 12px;"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-circle-info"></i> Station Inspector</h3>
+        </div>
+        <div class="card-body" id="map-station-inspector">
+            <div style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+                <i class="fa-solid fa-hand-pointer" style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--ocean-cyan);"></i>
+                <p>Click any Ganga station marker on the map to view live telemetry and DSS advisory.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+{% endblock %}

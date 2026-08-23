@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Analytics - Ganga DSS{% endblock %}
+{% block header_title %}Ganga River Basin Multi-Parameter Analytics{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-pie text-teal"></i> Parameter Trend & Comparative Controls</h3>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Station Filter</label>
+                <select id="analytics-station-select" class="form-select">
+                    <option value="all">All Basin Stations (Average)</option>
+                    {% for st in stations %}
+                        <option value="{{ st.id }}">{{ st.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Primary Parameter</label>
+                <select id="analytics-param-select" class="form-select">
+                    <option value="wqi" selected>Water Quality Index (WQI)</option>
+                    <option value="dissolved_oxygen">Dissolved Oxygen (DO)</option>
+                    <option value="turbidity">Turbidity (NTU)</option>
+                    <option value="ph">pH Level</option>
+                    <option value="temperature">Temperature (°C)</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Time Window</label>
+                <select id="analytics-days-select" class="form-select">
+                    <option value="7">Past 7 Days</option>
+                    <option value="15">Past 15 Days</option>
+                    <option value="30" selected>Past 30 Days</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-chart-line text-teal"></i> Multi-Parameter Time Series Analysis</h3>
+    </div>
+    <div class="card-body">
+        <canvas id="analyticsMainChart" height="320"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/analytics.js') }}"></script>
+{% endblock %}

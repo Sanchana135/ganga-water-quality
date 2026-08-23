@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}IoT Live Monitoring Studio - Ganga DSS{% endblock %}
+{% block header_title %}IoT Sensor Telemetry & Real-Time Simulation Studio{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-sliders text-teal"></i> IoT Control Studio & Parameter Injector</h3>
+        <div style="display: flex; gap: 0.75rem;">
+            <button id="btn-live-toggle" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-play"></i> Start Auto Simulation
+            </button>
+            <button id="btn-gen-reading" class="btn btn-teal btn-sm">
+                <i class="fa-solid fa-arrows-rotate"></i> Generate New Sensor Reading
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Select Ganga Monitoring Station</label>
+                <select id="station-select" class="form-select">
+                    {% for st in stations %}
+                        <option value="{{ st.id }}">{{ st.name }} ({{ st.location }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                <i class="fa-solid fa-circle-info text-teal"></i> Generates realistic sensor values, computes WQI, evaluates ecological alerts, and persists to SQLite database.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Parameter Cards Grid -->
+<div class="grid-4" id="sensor-cards-grid">
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">pH Level</div>
+            <div class="stat-value" id="card-ph">--</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Neutral Range: 6.5 - 8.5</div>
+        </div>
+        <div class="stat-icon navy"><i class="fa-solid fa-flask"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Dissolved Oxygen (DO)</div>
+            <div class="stat-value" id="card-do">-- <span style="font-size: 0.85rem;">mg/L</span></div>
+            <div style="font-size: 0.75rem; color: var(--emerald-green);">Ideal Saturation</div>
+        </div>
+        <div class="stat-icon green"><i class="fa-solid fa-wind"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Turbidity</div>
+            <div class="stat-value" id="card-turb">-- <span style="font-size: 0.85rem;">NTU</span></div>
+            <div style="font-size: 0.75rem; color: var(--amber-warning);">Sediment Proxy</div>
+        </div>
+        <div class="stat-icon amber"><i class="fa-solid fa-water-lower"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Calculated WQI Score</div>
+            <div class="stat-value" id="card-wqi">--</div>
+            <div id="card-wqi-badge"></div>
+        </div>
+        <div class="stat-icon cyan"><i class="fa-solid fa-chart-simple"></i></div>
+    </div>
+</div>
+
+<div class="grid-4">
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Total Dissolved Solids (TDS)</div>
+            <div class="stat-value" id="card-tds">-- <span style="font-size: 0.85rem;">mg/L</span></div>
+        </div>
+        <div class="stat-icon navy"><i class="fa-solid fa-cubes"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Electrical Conductivity</div>
+            <div class="stat-value" id="card-cond">-- <span style="font-size: 0.85rem;">µS/cm</span></div>
+        </div>
+        <div class="stat-icon cyan"><i class="fa-solid fa-bolt"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Biological Oxygen Demand (BOD)</div>
+            <div class="stat-value" id="card-bod">-- <span style="font-size: 0.85rem;">mg/L</span></div>
+        </div>
+        <div class="stat-icon red"><i class="fa-solid fa-biohazard"></i></div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-info">
+            <div class="stat-label">Chemical Oxygen Demand (COD)</div>
+            <div class="stat-value" id="card-cod">-- <span style="font-size: 0.85rem;">mg/L</span></div>
+        </div>
+        <div class="stat-icon red"><i class="fa-solid fa-skull-crossbones"></i></div>
+    </div>
+</div>
+
+<!-- Real-time Chart & Recent Logs -->
+<div class="grid-2">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-chart-line text-teal"></i> Live Parameter History</h3>
+            <div style="font-size: 0.8rem; color: var(--text-muted);" id="latest-timestamp">Last sync: Never</div>
+        </div>
+        <div class="card-body">
+            <canvas id="monitoringChart" height="260"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Station Telemetry Stream</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>pH</th>
+                            <th>DO</th>
+                            <th>Turb</th>
+                            <th>BOD</th>
+                            <th>WQI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="telemetry-stream-tbody">
+                        <tr><td colspan="6" style="text-align: center;">Loading telemetry...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/monitoring.js') }}"></script>
+{% endblock %}

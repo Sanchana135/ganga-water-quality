@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Historical Sensor Telemetry - Ganga DSS{% endblock %}
+{% block header_title %}Searchable Ganga Water Quality Historical Database{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-magnifying-glass text-teal"></i> Query & Export Logs</h3>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <input type="text" id="history-search" class="form-control" placeholder="Search station name..." style="width: 200px;">
+            
+            <select id="history-station-filter" class="form-select" style="width: 180px;">
+                <option value="all">All Stations</option>
+                {% for st in stations %}
+                    <option value="{{ st.id }}">{{ st.name }}</option>
+                {% endfor %}
+            </select>
+
+            <button id="btn-export-csv" class="btn btn-teal btn-sm">
+                <i class="fa-solid fa-file-csv"></i> Export CSV
+            </button>
+        </div>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Station</th>
+                        <th>pH</th>
+                        <th>DO (mg/L)</th>
+                        <th>Turbidity</th>
+                        <th>Temp (°C)</th>
+                        <th>TDS</th>
+                        <th>BOD</th>
+                        <th>COD</th>
+                        <th>WQI</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody id="history-tbody">
+                    <tr><td colspan="11" style="text-align: center;">Loading historical logs...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-header" style="border-top: 1px solid var(--border-color); border-bottom: none;">
+        <div style="font-size: 0.85rem; color: var(--text-muted);" id="pagination-info">Showing page 1</div>
+        <div style="display: flex; gap: 0.5rem;">
+            <button id="btn-prev-page" class="btn btn-outline btn-sm"><i class="fa-solid fa-chevron-left"></i> Previous</button>
+            <button id="btn-next-page" class="btn btn-outline btn-sm">Next <i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let currentPage = 1;
+    const searchInput = document.getElementById('history-search');
+    const stationFilter = document.getElementById('history-station-filter');
+    const btnPrev = document.getElementById('btn-prev-page');
+    const btnNext = document.getElementById('btn-next-page');
+    const btnExport = document.getElementById('btn-export-csv');
+
+    loadHistory();
+
+    searchInput.addEventListener('input', () => { currentPage = 1; loadHistory(); });
+    stationFilter.addEventListener('change', () => { currentPage = 1; loadHistory(); });
+
+    btnPrev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; loadHistory(); } });
+    btnNext.addEventListener('click', () => { currentPage++; loadHistory(); });
+
+    btnExport.addEventListener('click', () => {
+        window.location.href = '/data/demo_water_quality.csv';
+    });
+
+    function loadHistory() {
+        const search = searchInput.value.trim();
+        const st = stationFilter.value;
+
+        fetch(`/api/history?page=${currentPage}&per_page=15&station_id=${st}&search=${encodeURIComponent(search)}`)
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('history-tbody');
+                if (!data.items || data.items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">No matching historical records found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.items.map(r => `
+                    <tr>
+                        <td>${r.timestamp}</td>
+                        <td><strong>${r.station_name}</strong></td>
+                        <td>${r.ph.toFixed(2)}</td>
+                        <td>${r.dissolved_oxygen.toFixed(2)}</td>
+                        <td>${r.turbidity.toFixed(1)}</td>
+                        <td>${r.temperature.toFixed(1)}</td>
+                        <td>${r.tds.toFixed(1)}</td>
+                        <td>${r.bod.toFixed(2)}</td>
+                        <td>${r.cod.toFixed(2)}</td>
+                        <td><strong>${r.wqi.toFixed(1)}</strong></td>
+                        <td><span class="badge-status ${r.quality_category.toLowerCase()}">${r.quality_category}</span></td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('pagination-info').textContent = `Showing Page ${data.page} of ${data.pages} (${data.total} total records)`;
+                btnPrev.disabled = data.page <= 1;
+                btnNext.disabled = data.page >= data.pages;
+            });
+    }
+});
+</script>
+{% endblock %}

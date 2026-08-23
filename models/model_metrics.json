@@ -1,0 +1,26 @@
+{
+    "model_type": "RandomForest Ensembles (Regressor & Classifier)",
+    "train_samples": 480,
+    "test_samples": 120,
+    "mae": 5.2458,
+    "rmse": 7.3103,
+    "r2": 0.9935,
+    "accuracy": 0.975,
+    "precision": 0.952,
+    "recall": 0.975,
+    "f1_score": 0.963,
+    "features_used": [
+        "station_id",
+        "ph",
+        "temperature",
+        "dissolved_oxygen",
+        "turbidity",
+        "tds",
+        "conductivity",
+        "bod",
+        "cod",
+        "rainfall_mm",
+        "hour",
+        "month"
+    ]
+}

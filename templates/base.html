@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ganga Water Quality Forecasting System{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="app-sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">
+                    <i class="fa-solid => fa-droplet-degree"></i><i class="fa-solid fa-water"></i>
+                </div>
+                <div>
+                    <div class="brand-title">Ganga DSS</div>
+                    <div class="brand-subtitle">AI River Monitoring</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-category">Core Platform</div>
+                <a href="{{ url_for('dashboard.view_dashboard') }}" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-line"></i> Overview
+                </a>
+                <a href="{{ url_for('dashboard.view_monitoring') }}" class="nav-link {% if request.path == '/monitoring' %}active{% endif %}">
+                    <i class="fa-solid fa-microchip"></i> Live Monitoring
+                </a>
+                <a href="{{ url_for('dashboard.view_map') }}" class="nav-link {% if request.path == '/map' %}active{% endif %}">
+                    <i class="fa-solid fa-map-location-dot"></i> Ganga GIS Map
+                </a>
+
+                <div class="nav-category">Intelligence & Analytics</div>
+                <a href="{{ url_for('dashboard.view_forecast') }}" class="nav-link {% if request.path == '/forecast' %}active{% endif %}">
+                    <i class="fa-solid fa-brain"></i> AI Forecast
+                </a>
+                <a href="{{ url_for('dashboard.view_satellite') }}" class="nav-link {% if request.path == '/satellite' %}active{% endif %}">
+                    <i class="fa-solid fa-satellite"></i> Satellite Data
+                </a>
+                <a href="{{ url_for('dashboard.view_dss') }}" class="nav-link {% if request.path == '/dss' %}active{% endif %}">
+                    <i class="fa-solid fa-lightbulb"></i> DSS Engine
+                </a>
+                <a href="{{ url_for('dashboard.view_analytics') }}" class="nav-link {% if request.path == '/analytics' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie"></i> Analytics
+                </a>
+
+                <div class="nav-category">Data & Operations</div>
+                <a href="{{ url_for('dashboard.view_alerts') }}" class="nav-link {% if request.path == '/alerts' %}active{% endif %}">
+                    <i class="fa-solid fa-bell"></i> Early Warnings
+                </a>
+                <a href="{{ url_for('dashboard.view_history') }}" class="nav-link {% if request.path == '/history' %}active{% endif %}">
+                    <i class="fa-solid fa-database"></i> Historical Logs
+                </a>
+                <a href="{{ url_for('dashboard.view_reports') }}" class="nav-link {% if request.path == '/reports' %}active{% endif %}">
+                    <i class="fa-solid fa-file-contract"></i> Reports
+                </a>
+                <a href="{{ url_for('dashboard.view_upload') }}" class="nav-link {% if request.path == '/upload' %}active{% endif %}">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Data Upload
+                </a>
+
+                {% if session.get('user_role') == 'Administrator' %}
+                <div class="nav-category">System Admin</div>
+                <a href="{{ url_for('dashboard.view_admin') }}" class="nav-link {% if request.path == '/admin' %}active{% endif %}">
+                    <i class="fa-solid fa-user-gear"></i> Administration
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        {{ session.get('user_name', 'U')[0] }}
+                    </div>
+                    <div>
+                        <div class="user-name">{{ session.get('user_name', 'User') }}</div>
+                        <div class="user-role">{{ session.get('user_role', 'Guest') }}</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" style="color: #94A3B8;" title="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <header class="top-header">
+                <div class="page-title-box">
+                    <h1>{% block header_title %}Ganga River Water Quality DSS{% endblock %}</h1>
+                </div>
+
+                <div class="header-actions">
+                    <div class="badge-mode">
+                        <span class="pulse-dot"></span> Simulated IoT / Dataset Mode
+                    </div>
+                    <a href="{{ url_for('dashboard.view_alerts') }}" class="btn btn-outline btn-sm" title="View Active Alerts">
+                        <i class="fa-solid fa-bell text-warning"></i> Alerts
+                    </a>
+                </div>
+            </header>
+
+            <main class="content-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert-box {{ category | upper }}" style="margin-bottom: 1.5rem;">
+                                <i class="fa-solid fa-circle-info"></i> {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet JS CDN -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

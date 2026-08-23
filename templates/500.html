@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Server Error - Ganga DSS{% endblock %}
+{% block content %}
+<div style="text-align: center; padding: 4rem 1rem;">
+    <h1 style="font-size: 4rem; color: var(--critical-red);">500</h1>
+    <h2 style="margin-bottom: 1rem;">Internal Server Error</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">An exception occurred on the environmental server.</p>
+    <a href="{{ url_for('dashboard.view_dashboard') }}" class="btn btn-teal">Back to Dashboard</a>
+</div>
+{% endblock %}

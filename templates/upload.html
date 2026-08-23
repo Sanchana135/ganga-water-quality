@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Dataset Ingestion & Upload - Ganga DSS{% endblock %}
+{% block header_title %}Dataset Ingestion & Validation Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fa-solid fa-cloud-arrow-up text-teal"></i> Upload Environmental CSV Dataset</h3>
+    </div>
+    <div class="card-body">
+        <form id="upload-form" enctype="multipart/form-data">
+            <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 1.25rem; align-items: flex-end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Dataset Type</label>
+                    <select id="dataset-type" class="form-select">
+                        <option value="water_quality">Water Quality CSV</option>
+                        <option value="iot_sensors">IoT Sensor Telemetry CSV</option>
+                        <option value="satellite">Satellite Earth Observation CSV</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Select CSV File</label>
+                    <input type="file" id="csv-file-input" class="form-control" accept=".csv" required>
+                </div>
+
+                <button type="submit" class="btn btn-teal">
+                    <i class="fa-solid fa-upload"></i> Validate & Ingest
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="upload-result-container" style="display: none;">
+    <div class="grid-4">
+        <div class="stat-card">
+            <div class="stat-info">
+                <div class="stat-label">Total Records</div>
+                <div class="stat-value" id="res-total">0</div>
+            </div>
+            <div class="stat-icon navy"><i class="fa-solid fa-database"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <div class="stat-label">Valid Records</div>
+                <div class="stat-value" id="res-valid" style="color: var(--emerald-green);">0</div>
+            </div>
+            <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <div class="stat-label">Invalid Records</div>
+                <div class="stat-value" id="res-invalid" style="color: var(--critical-red);">0</div>
+            </div>
+            <div class="stat-icon red"><i class="fa-solid fa-circle-xmark"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <div class="stat-label">Missing Cell Values</div>
+                <div class="stat-value" id="res-missing">0</div>
+            </div>
+            <div class="stat-icon amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fa-solid fa-table-cells"></i> Dataset Preview (First 5 Records)</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            <div class="table-responsive">
+                <table class="table" id="preview-table">
+                    <thead><tr id="preview-thead"></tr></thead>
+                    <tbody id="preview-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('upload-form');
+    const resultContainer = document.getElementById('upload-result-container');
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const fileInput = document.getElementById('csv-file-input');
+        const datasetType = document.getElementById('dataset-type').value;
+
+        if (!fileInput.files || fileInput.files.length === 0) return;
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        formData.append('dataset_type', datasetType);
+
+        fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json().then(data => ({ status: res.status, body: data })))
+        .then(res => {
+            if (res.status !== 200) {
+                alert(res.body.error || "Upload failed validation.");
+                return;
+            }
+
+            const d = res.body;
+            resultContainer.style.display = 'block';
+            document.getElementById('res-total').textContent = d.total_records;
+            document.getElementById('res-valid').textContent = d.valid_records;
+            document.getElementById('res-invalid').textContent = d.invalid_records;
+            document.getElementById('res-missing').textContent = d.missing_values;
+
+            renderPreviewTable(d.preview);
+        })
+        .catch(err => console.error("Upload error:", err));
+    });
+
+    function renderPreviewTable(records) {
+        if (!records || records.length === 0) return;
+
+        const cols = Object.keys(records[0]);
+        document.getElementById('preview-thead').innerHTML = cols.map(c => `<th>${c}</th>`).join('');
+
+        document.getElementById('preview-tbody').innerHTML = records.map(r => `
+            <tr>${cols.map(c => `<td>${r[c]}</td>`).join('')}</tr>
+        `).join('');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Ganga River Water Quality DSS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0B132B 0%, #1C2541 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .auth-card {
+            background: #FFFFFF;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .auth-header { text-align: center; margin-bottom: 2rem; }
+        .auth-logo {
+            width: 54px; height: 54px; background: linear-gradient(135deg, #00A896, #0284C7);
+            border-radius: 14px; display: inline-flex; align-items: center; justify-content: center;
+            color: white; font-size: 1.6rem; margin-bottom: 0.75rem;
+        }
+        .demo-credentials-box {
+            background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px;
+            padding: 0.85rem; font-size: 0.82rem; color: #166534; margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo"><i class="fa-solid fa-water"></i></div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">Portal Login</h2>
+            <p style="color: var(--text-muted); font-size: 0.88rem;">Ganga River Water Quality DSS</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert-box {{ category | upper }}" style="font-size: 0.85rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div style="font-size: 0.82rem; color: #0369A1; background: #E0F2FE; border: 1px solid #BAE6FD; padding: 0.65rem 0.85rem; border-radius: 8px; margin-bottom: 1.25rem;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> New users can sign in directly. An account will be created automatically.
+        </div>
+
+        <form action="{{ url_for('auth.login') }}" method="POST">
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                <input type="email" name="email" class="form-control" placeholder="admin@ganga.gov.in" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-lock"></i> Password</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.85rem;">
+                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer;">
+                    <input type="checkbox" name="remember" checked> Remember me
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-teal" style="width: 100%; padding: 0.75rem;">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In to DSS
+            </button>
+        </form>
+
+        <div class="demo-credentials-box">
+            <strong><i class="fa-solid fa-user-shield"></i> Quick Demo Accounts:</strong>
+            <div style="margin-top: 0.3rem;">• Admin: admin@ganga.gov.in / Admin@123</div>
+            <div>• Analyst: analyst@ganga.gov.in / Analyst@123</div>
+            <div>• Researcher: researcher@ganga.gov.in / Research@123</div>
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.88rem; color: var(--text-muted);">
+            Don't have an account? <a href="{{ url_for('auth.register') }}" style="color: var(--ocean-cyan); font-weight: 600;">Register here</a>
+        </div>
+    </div>
+
+</body>
+</html>
