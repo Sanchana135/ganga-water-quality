@@ -1,0 +1,8 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+instance/ganga.db
+*.db
+.vscode/
