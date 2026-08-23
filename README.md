@@ -3,6 +3,16 @@
 A complete, professional, full-stack AI/ML software application developed for academic project demonstration, viva, and environmental decision-support system (DSS) evaluation.
 
 ---
+##LIVE DEMO
+
+https://ganga-water-quality-w200.onrender.com/
+---
+
+
+##PROTOTYPE
+
+https://drive.google.com/file/d/1nT9kmsOH3KIuyik3tUV_nFXv1LqQvpQX/view?usp=drive_link
+
 
 ## 1. Executive Summary & Problem Statement
 
